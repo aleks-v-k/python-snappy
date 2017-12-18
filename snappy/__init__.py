@@ -9,3 +9,8 @@ from .snappy import (
 	UncompressError,
 	isValidCompressed,
 )
+
+from .snappy_hadoop import (
+    stream_compress as hadoop_stream_compress,
+    stream_decompress as hadoop_stream_decompress,
+)
