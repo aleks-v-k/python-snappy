@@ -5,20 +5,20 @@ import random
 import struct
 from unittest import TestCase
 
-import snappy.snappy_hadoop
+import snappy.hadoop_snappy
 
 
 class SnappyStreaming(TestCase):
 
     def test_random(self):
         for _ in range(100):
-            compressor = snappy.snappy_hadoop.StreamCompressor()
-            decompressor = snappy.snappy_hadoop.StreamDecompressor()
+            compressor = snappy.hadoop_snappy.StreamCompressor()
+            decompressor = snappy.hadoop_snappy.StreamDecompressor()
             data = b""
             compressed = b""
             for _ in range(random.randint(0, 3)):
                 chunk = os.urandom(
-                    random.randint(0, snappy.snappy_hadoop._CHUNK_MAX * 2)
+                    random.randint(0, snappy.hadoop_snappy._CHUNK_MAX * 2)
                 )
                 data += chunk
                 compressed += compressor.add_chunk(
@@ -26,7 +26,7 @@ class SnappyStreaming(TestCase):
                 )
 
             upper_bound = random.choice(
-                [256, snappy.snappy_hadoop._CHUNK_MAX * 2]
+                [256, snappy.hadoop_snappy._CHUNK_MAX * 2]
             )
             while compressed:
                 size = random.randint(0, upper_bound)
@@ -39,13 +39,13 @@ class SnappyStreaming(TestCase):
             self.assertEqual(len(data), 0)
 
     def test_concatenation(self):
-        data1 = os.urandom(snappy.snappy_hadoop._CHUNK_MAX * 2)
+        data1 = os.urandom(snappy.hadoop_snappy._CHUNK_MAX * 2)
         data2 = os.urandom(4096)
-        decompressor = snappy.snappy_hadoop.StreamDecompressor()
+        decompressor = snappy.hadoop_snappy.StreamDecompressor()
         self.assertEqual(
                 decompressor.decompress(
-                    snappy.snappy_hadoop.StreamCompressor().compress(data1) +
-                    snappy.snappy_hadoop.StreamCompressor().compress(data2)),
+                    snappy.hadoop_snappy.StreamCompressor().compress(data1) +
+                    snappy.hadoop_snappy.StreamCompressor().compress(data2)),
                 data1 + data2)
 
 

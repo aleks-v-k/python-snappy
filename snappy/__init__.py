@@ -10,7 +10,7 @@ from .snappy import (
 	isValidCompressed,
 )
 
-from .snappy_hadoop import (
+from .hadoop_snappy import (
     stream_compress as hadoop_stream_compress,
     stream_decompress as hadoop_stream_decompress,
 )

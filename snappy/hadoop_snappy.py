@@ -36,18 +36,12 @@ _STREAM_TO_STREAM_BLOCK_SIZE = _CHUNK_MAX
 _INT_SIZE = 4
 
 
-def hadoop_snappy_max_input_size(block_size):
-    buffer_size = block_size if block_size else SNAPPY_BUFFER_SIZE_DEFAULT
-    compression_overhead = (buffer_size / 6) + 32
-    return int(buffer_size - compression_overhead)
-
-
-def prepare_num(num):
+def pack_int(num):
     big_endian_uint = struct.pack('>I', num)
     return big_endian_uint
 
 
-def get_int(data):
+def unpack_int(data):
     return struct.unpack('>I', data)[0]
 
 
@@ -73,10 +67,10 @@ class StreamCompressor(object):
         """
         out = []
         uncompressed_length = len(data)
-        out.append(prepare_num(uncompressed_length))
+        out.append(pack_int(uncompressed_length))
         compressed_chunk = _compress(data)
         compressed_length = len(compressed_chunk)
-        out.append(prepare_num(compressed_length))
+        out.append(pack_int(compressed_length))
         out.append(compressed_chunk)
         return b"".join(out)
 
@@ -133,11 +127,11 @@ class StreamDecompressor(object):
                 return b"".join(uncompressed)
             next_start = 0
             if not self._block_length:
-                self._block_length = get_int(self._buf[:int_size])
+                self._block_length = unpack_int(self._buf[:int_size])
                 self._buf = self._buf[int_size:]
                 if len(self._buf) < int_size:
                     return b"".join(uncompressed)
-            compressed_length = get_int(
+            compressed_length = unpack_int(
                 self._buf[next_start:next_start + int_size]
             )
             next_start += int_size
@@ -178,8 +172,7 @@ class StreamDecompressor(object):
         return copy
 
 
-def stream_compress(src, dst, blocksize=None):
-    blocksize = hadoop_snappy_max_input_size(blocksize)
+def stream_compress(src, dst, blocksize=SNAPPY_BUFFER_SIZE_DEFAULT):
     return _stream_compress(
         src, dst, blocksize=blocksize, compressor_cls=StreamCompressor
     )
